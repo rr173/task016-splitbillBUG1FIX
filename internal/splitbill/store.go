@@ -60,7 +60,11 @@ func (s *Store) CreateGroup(members []string) (string, error) {
 		seen[m] = struct{}{}
 	}
 	id := fmt.Sprintf("%d", s.next.Add(1))
-	g := &Group{ID: id, Members: members}
+	// 复制一份成员切片，使组内状态与调用方解耦：创建完成后
+	// 调用方对外部切片的任何修改都不影响组内已有成员。
+	copied := make([]string, len(members))
+	copy(copied, members)
+	g := &Group{ID: id, Members: copied}
 	s.mu.Lock()
 	s.groups[id] = g
 	s.mu.Unlock()
